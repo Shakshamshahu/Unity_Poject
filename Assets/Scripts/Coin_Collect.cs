@@ -18,7 +18,7 @@ public class Coin_Collect : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             gameObject.SetActive(false);
-            Coin_Trigger_Event.CoinCollect();
+            Event_Maneger.Trigger("ScoreUpdate");
         }
     }
 }

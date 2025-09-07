@@ -1,4 +1,3 @@
-using NaughtyAttributes;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
@@ -13,12 +12,14 @@ public enum EnemyResponse
 
 public class EnemyAI : MonoBehaviour
 {
+    public Enemy_Controller currentState;
+
     [Header("References")]
     public PlayerController player;
-    private NavMeshAgent agent;
+    public NavMeshAgent agent;
 
     [Header("Patrol")]
-    [SerializeField] Transform[] patrolPoints;
+    public Transform[] patrolPoints;
     private int currentPoint = 0;
 
     [Header("AI Settings")]
@@ -31,81 +32,46 @@ public class EnemyAI : MonoBehaviour
 
     [Header(" Shoot ")]
     public GameObject bullet;
+    bool enemyStory;
+    public float DistanceToPlayer => Vector3.Distance(player.transform.position, transform.position);
+    private void OnEnable()
+    {
+        Event_Maneger.Subscribe("LevelCompleteCall", OnlevelComplete);
+    }
+    private void OnDisable()
+    {
+        Event_Maneger.Unsubscribe("LevelCompleteCall", OnlevelComplete);
+    }
+
+    private void OnlevelComplete(object obj)
+    {
+        enemyStory = true;
+        agent.isStopped = true;
+        player.isPlayerWin = true;
+    }
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-        //SetNextPatrolPoint();
-        StartCoroutine(SetNextPatrolPoint());
+        ChangeState(new IdleState(this));
     }
-
+    public void ChangeState(Enemy_Controller newstate)
+    {
+        currentState?.Exit();
+        currentState = newstate;
+        currentState.Enter();
+    }
     void Update()
     {
-        distanceToPlayer = Vector3.Distance(player.transform.position, transform.position);
-
-        if (distanceToPlayer <= attackRange)
-        {
-            enemyResponse = EnemyResponse.Attack;
-        }
-        else if (distanceToPlayer <= chaseRange)
-        {
-            enemyResponse = EnemyResponse.Chase;
-        }
-        else
-        {
-            enemyResponse = EnemyResponse.Patrol;
-        }
-
-        switch (enemyResponse)
-        {
-            case EnemyResponse.Patrol:
-                Patrol();
-                break;
-            case EnemyResponse.Chase:
-                Chase();
-                break;
-            case EnemyResponse.Attack:
-                Attack();
-                break;
-            case EnemyResponse.Idle:
-                agent.isStopped = true;
-                break;
-
-        }
+        currentState?.Update();
     }
-
-    void Patrol()
-    {
-        bulletDone = false;
-        if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
-        {
-            StartCoroutine(SetNextPatrolPoint());
-        }
-    }
-
-    void Chase()
-    {
-        agent.isStopped = false;
-        agent.SetDestination(player.transform.position);
-    }
-
-    void Attack()
-    {
-        agent.isStopped = true;
-        transform.LookAt(player.transform);
-        player.EnemyAttack();
-        Shoot();
-        // Example attack (replace with animation/damage)
-        Debug.Log("Attacking player!");
-    }
-
     public float shootForce = 5f;
     int bulletCont;
     bool bulletDone = false;
-    [Button]
+
     public void Shoot()
     {
-        if (bulletDone) return;
+        if (bulletDone || enemyStory) return;
         StartCoroutine(DelayBullet());
 
     }
@@ -131,22 +97,12 @@ public class EnemyAI : MonoBehaviour
         shootBullet.SetActive(false);
     }
     bool isIdling;
-    private IEnumerator SetNextPatrolPoint()
+    // Example for patrol points
+    public void SetNextPatrolPoint()
     {
-        if (patrolPoints.Length == 0 || isIdling) yield break;
-
-        isIdling = true;
-        enemyResponse = EnemyResponse.Idle;
-        agent.isStopped = true;
-
-        yield return new WaitForSeconds(2f);
-
-        currentPoint = Random.Range(0, patrolPoints.Length);
-        enemyResponse = EnemyResponse.Patrol;
-        agent.isStopped = false;
-        agent.destination = patrolPoints[currentPoint].position;
-
-        isIdling = false;
+        if (patrolPoints.Length == 0) return;
+        int randomIndex = Random.Range(0, patrolPoints.Length);
+        agent.destination = patrolPoints[randomIndex].position;
     }
 
 

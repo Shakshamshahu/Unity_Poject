@@ -11,4 +11,12 @@ public class Bullet : MonoBehaviour
     {
         this.gameObject.SetActive(false);
     }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        /*if (collision != null && collision.gameObject.CompareTag("Player")) 
+        { 
+            collision.gameObject.GetComponent<PlayerController>().
+        }*/
+    }
 }

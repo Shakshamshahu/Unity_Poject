@@ -141,7 +141,7 @@ GameObject:
   - component: {fileID: 7168344745909268323}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -156,7 +156,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.38617775, y: 0.38617778, z: 0.38617775}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6058179058858245618}
@@ -277,6 +277,8 @@ MonoBehaviour:
   jumpHeight: 2
   gravity: -9.81
   slider: {fileID: 5084141461003895128}
+  playerDie: 0
+  isPlayerWin: 0
 --- !u!1 &4367356872155425967
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,8 @@ public class PlayerController : MonoBehaviour
     public float jumpHeight = 2f;
     public float gravity = -9.81f;
     public Slider slider;
-
+    public bool playerDie;
+    public bool isPlayerWin;
     private CharacterController controller;
     private Vector3 currentVelocity = Vector3.zero;
     private Vector3 verticalVelocity = Vector3.zero;
@@ -20,12 +21,10 @@ public class PlayerController : MonoBehaviour
         controller = GetComponent<CharacterController>();
     }
 
-    void Update()
-    {
-
-    }
     private void FixedUpdate()
     {
+        if (playerDie || isPlayerWin) return;
+
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
         Vector3 inputDir = new Vector3(h, 0, v).normalized;
@@ -67,21 +66,31 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision != null && collision.transform.CompareTag("Enemy"))
+        if (collision != null && collision.transform.CompareTag("Bullet"))
         {
-            slider.value = slider.value - 0.2f;
-            if (slider.value <= 0)
-            {
-                slider.value = 0;
-            }
+            ApplyDamage(0.1f); // bullet deals 0.1 damage
         }
     }
-    public void EnemyAttack()
+
+    // Centralized damage handling
+    private void ApplyDamage(float amount)
     {
-        slider.value = slider.value - 0.2f;
+        if (playerDie) return;
+
+        slider.value -= amount;
+        Event_Maneger.Trigger("PlayerHealth", slider.value); //HealthUpdate(slider.value);
+
         if (slider.value <= 0)
         {
             slider.value = 0;
+            playerDie = true;
+            Event_Maneger.Trigger("LevelFailCall");
         }
+    }
+
+    // For enemy melee attacks or AI damage
+    public void EnemyAttack()
+    {
+        ApplyDamage(0.2f); // enemy melee deals 0.2 damage
     }
 }
